@@ -14,7 +14,8 @@ def predict():
     try:
         features_trans = trans.transform(np.array(request.json['prediction']).reshape(1,55))
         prediction = model.predict(features_trans).tolist()
-        return make_response(jsonify({'prediction': prediction}))
+        # return make_response(jsonify({'prediction': prediction}))
+        return make_response(jsonify({f'prediction,v{version}': prediction}))
     except ValueError:
         raise RuntimeError('Features are not in the correct format.')
 if __name__ == '__main__':

@@ -21,7 +21,7 @@ spec:
       namespace: canary-ml-app
     spec:
       containers:
-      - image: bird5555/carbon-api
+      - image: bird5555/carbon-api-canary
         name: canary-ml-predict-api
         ports:
         - containerPort: 5000

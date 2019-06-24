@@ -1,7 +1,9 @@
 FROM python:3.6.3
 ENV PYTHONUNBUFFERED 1
 ENV SERVICE_NAME carbon
-ENV API_VERSION 1
+# ENV API_VERSION 1
+ARG API_VERSION
+ENV API_VERSION=${API_VERSION}
 RUN mkdir -p /usr/src/app
 COPY *.joblib /usr/src/app/
 COPY *.py /usr/src/app/
