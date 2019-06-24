@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: canary-ml-app
+---
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: canary-ml-predict-rc
+  labels:
+    app: canary-ml-predict
+    env: canary    
+  namespace: canary-ml-app
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: canary-ml-predict
+        env: canary
+      namespace: canary-ml-app
+    spec:
+      containers:
+      - image: bird5555/carbon-api
+        name: canary-ml-predict-api
+        ports:
+        - containerPort: 5000
+          protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: canary-ml-predict-lb
+  labels:
+    app: canary-ml-predict
+  namespace: canary-ml-app
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 5000
+    targetPort: 5000
+  selector:
+    app: canary-ml-predict
