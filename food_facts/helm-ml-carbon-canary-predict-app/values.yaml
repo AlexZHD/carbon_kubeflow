@@ -1,0 +1,13 @@
+# Default values for helm-ml-carbon-canary--predict-app.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+app:
+  name: canary-ml-predict
+  env: canary
+  namespace: canary-ml-app
+  image: bird5555/carbon-api-canary
+  
+replicas: 2
+containerPort: 5000
+targetPort: 5000
