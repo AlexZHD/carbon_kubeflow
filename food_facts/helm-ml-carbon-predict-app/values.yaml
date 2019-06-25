@@ -6,7 +6,7 @@ app:
   env: prod
   namespace: prod-ml-app
   image: bird5555/carbon-api
-
+  
 replicas: 2
 containerPort: 5000
 targetPort: 5000
