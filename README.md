@@ -420,3 +420,45 @@ $kops validate cluster --state=$(terraform output state_store)
     # example to push docker file to docker registry:
         $docker push bird5555/carbon-api
         $docker push bird5555/carbon-api:tagname
+
+## Launching the Containerised Flask ML Model Service on the minikube        
+    # Minikube allows a single node Kubernetes cluster to run within a Virtual 
+    # Machine (VM) within a local machine (i.e. on your laptop), for development 
+    # purposes. On Mac OS X, the steps required to get up-and-running are as follows:
+        #  make sure the Homebrew package manager for OS X is installed
+        #  install VirtualBox using, brew cask install virtualbox
+        #  install Minikube using, brew cask install minikube
+    # start minikube as:
+        $minikube start --memory 4096
+        $kubectl config use-context minikube
+        $kubectl cluster-info
+            # Kubernetes master is running at https://192.168.99.106:8443
+            # KubeDNS is running at https://192.168.99.106:8443/api/v1/namespaces/kube-system/# services/kube-dns:dns/proxy
+        # run container with ML load in minikube pod managed by a replication controller, which is the device that 
+        # ensures that at least one pod running api service is operational at any given time  
+                # docker push bird5555/carbon-api 
+                $kubectl delete deployment --all
+                $kubectl delete services --all
+                $minikube delete
+                $rm -rf ~/.minikube
+                $minikube start --memory 4096
+            $kubectl run carbon-api --image=bird5555/carbon-api:latest --port=5000 --generator=run/v1
+                kubectl run --generator=run/v1 is DEPRECATED and will be removed in a future version. Use kubectl run --generator=run-pod/v1 or kubectl create instead.
+                replicationcontroller/carbon-api created
+            $kubectl run carbon-api --image=bird5555/carbon-api:latest --port=5000 --generator=run-pod/v1  
+            $kubectl get pods
+                # NAME               READY   STATUS              RESTARTS   AGE
+                # carbon-api-7d67cbc7cb-b5757   1/1     Running   0          36m
+            # use port forwarding to test an individual container without exposing it to the 
+            # public internet    
+                $kubectl port-forward carbon-api-7d67cbc7cb-b5757 5000:5000  
+            $curl http://localhost:5000/carbon/v1/predict --request POST --header "Content-Type: application/json" --data '{"prediction": [2077.0,0,23.0,11.0,0,0,0,0,0,0,0,0,0,0,63.0,28.0,0,0,0,4.5,7.0,0.93,0.366141732283465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'
+            #To expose the container as a (load balanced) service to the outside world
+            $kubectl expose replicationcontroller carbon-api --type=LoadBalancer --name carbon-api-http
+            #check that this has worked and to find the services’s external IP address run
+                $minikube service list
+            # Minikube-specific commands as Minikube does not setup a real-life load balancer 
+            # (which is what would happen if we made this request on a cloud platform)    
+                $kubectl delete rc ...api
+                $kubectl delete service ...api-http
+                $minikube delete    
