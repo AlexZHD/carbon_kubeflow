@@ -402,21 +402,21 @@ $kops validate cluster --state=$(terraform output state_store)
     EXPOSE 5000
     CMD ["python", "app.py"]
 
- API_VERSION environment variable is used to handle versions of ML model.
-    example of local build canary vesion 2:
-        docker build . -t bird5555/carbon-api-canary --build-arg API_VERSION=2
-    exnmple of build production version 3:
-        docker build . -t bird5555/carbon-api --build-arg API_VERSION=3
-    local run production API:    
-        docker run -d --name carbon-api -p 5000:5000 bird5555/carbon-api
-    initial test with curl for Cookies Tout Choco:
-        curl http://localhost:5000/carbon/v3/predict --request POST --header "Content-Type: application/json" --data '{"prediction": [2077.0,0,23.0,11.0,0,0,0,0,0,0,0,0,0,0,63.0,28.0,0,0,0,4.5,7.0,0.93,0.366141732283465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'
-    should get reply as:
-        {
-            "prediction,v3": [
-                318.3333333333333
-            ]
-        }    
-    example to push docker file to docker registry:
-        docker push bird5555/carbon-api
-        docker push bird5555/carbon-api:tagname
+    # API_VERSION environment variable is used to handle versions of ML model.
+    # example of local build canary vesion 2:
+        $docker build . -t bird5555/carbon-api-canary --build-arg API_VERSION=2
+    # example of build production version 3:
+        $docker build . -t bird5555/carbon-api --build-arg API_VERSION=3
+    # local run production API:    
+        $docker run -d --name carbon-api -p 5000:5000 bird5555/carbon-api
+    # initial test with curl for Cookies Tout Choco:
+        $curl http://localhost:5000/carbon/v3/predict --request POST --header "Content-Type: application/json" --data '{"prediction": [2077.0,0,23.0,11.0,0,0,0,0,0,0,0,0,0,0,63.0,28.0,0,0,0,4.5,7.0,0.93,0.366141732283465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'
+    # should get reply as:
+        # {
+        #     "prediction,v3": [
+        #         318.3333333333333
+        #     ]
+        # }    
+    # example to push docker file to docker registry:
+        $docker push bird5555/carbon-api
+        $docker push bird5555/carbon-api:tagname
