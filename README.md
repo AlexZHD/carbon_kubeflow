@@ -13,6 +13,7 @@ Technologies used: Teraform, Docker, KOPS, Kubernetes, Jenkins, Kubectl, Helm
 2. KOPS: 
 3. AWS-IAM: https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
 4. Kubectl: https://kubernetes.io/docs/tasks/tools/install-kubectl/
+5. Helm: https://github.com/helm/helm
 
 ## Required AWS Access
 An AWS account with an access key is needed with the following permissions:
@@ -382,4 +383,40 @@ $kops validate cluster --state=$(terraform output state_store)
     $kubectl get deployments 
     $kubectl exec -it hello-kubernetes -c web -- sh                
 ```
+## Dockerfile to build the Carbon emission model with Flask and Sklearn
+    at .\food_facts directory
 
+    FROM python:3.6.3
+    ENV PYTHONUNBUFFERED 1
+    ENV SERVICE_NAME carbon
+    # ENV API_VERSION 1
+    ARG API_VERSION
+    ENV API_VERSION=${API_VERSION}
+    RUN mkdir -p /usr/src/app
+    COPY *.joblib /usr/src/app/
+    COPY *.py /usr/src/app/
+    COPY requirements.txt /usr/src/app/
+    WORKDIR /usr/src/app
+    RUN pip install -r requirements.txt
+    RUN pip install joblib
+    EXPOSE 5000
+    CMD ["python", "app.py"]
+
+ API_VERSION environment variable is used to handle versions of ML model.
+    example of local build canary vesion 2:
+        docker build . -t bird5555/carbon-api-canary --build-arg API_VERSION=2
+    exnmple of build production version 3:
+        docker build . -t bird5555/carbon-api --build-arg API_VERSION=3
+    local run production API:    
+        docker run -d --name carbon-api -p 5000:5000 bird5555/carbon-api
+    initial test with curl for Cookies Tout Choco:
+        curl http://localhost:5000/carbon/v3/predict --request POST --header "Content-Type: application/json" --data '{"prediction": [2077.0,0,23.0,11.0,0,0,0,0,0,0,0,0,0,0,63.0,28.0,0,0,0,4.5,7.0,0.93,0.366141732283465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'
+    should get reply as:
+        {
+            "prediction,v3": [
+                318.3333333333333
+            ]
+        }    
+    example to push docker file to docker registry:
+        docker push bird5555/carbon-api
+        docker push bird5555/carbon-api:tagname
