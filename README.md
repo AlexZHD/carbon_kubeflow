@@ -15,6 +15,9 @@ Technologies used: Teraform, Docker, KOPS, Kubernetes, Jenkins, Kubectl, Helm
 4. Kubectl: https://kubernetes.io/docs/tasks/tools/install-kubectl/
 5. Helm: https://github.com/helm/helm
 
+## Table of Content
+1. [Required AWS Access](README.md#required-aws-access)
+
 ## Required AWS Access
 An AWS account with an access key is needed with the following permissions:
 1. AmazonEC2FullAccess
