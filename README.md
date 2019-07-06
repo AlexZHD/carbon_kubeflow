@@ -465,7 +465,51 @@ $kops validate cluster --state=$(terraform output state_store)
 
 ## Defining entire applications is with YAML files that are posted to the Kubernetes API
     # Directory .\py-flask-ml-carbon-api incudes YAMLs files for production and canary enviroments.
-    # Example to apply production YAML to k8s 
+    # Example to apply production YAML to k8s :
+        apiVersion: v1
+        kind: Namespace
+        metadata:
+        name: prod-ml-app
+        ---
+        apiVersion: v1
+        kind: ReplicationController
+        metadata:
+        name: prod-ml-predict-rc
+        labels:
+            app: prod-ml-predict
+            env: prod    
+        namespace: prod-ml-app
+        spec:
+        replicas: 2
+        template:
+            metadata:
+            labels:
+                app: prod-ml-predict
+                env: prod
+            namespace: prod-ml-app
+            spec:
+            containers:
+            - image: bird5555/carbon-api
+                name: prod-ml-predict-api
+                ports:
+                - containerPort: 5000
+                protocol: TCP
+        ---
+        apiVersion: v1
+        kind: Service
+        metadata:
+        name: prod-ml-predict-lb
+        labels:
+            app: prod-ml-predict
+        namespace: prod-ml-app
+        spec:
+        type: LoadBalancer
+        ports:
+        - port: 5000
+            targetPort: 5000
+        selector:
+            app: prod-ml-predict
+
     $kubectl apply -f py-flask-ml-carbon-api/py-flask-ml-carbon.yaml
         # namespace/prod-ml-app created
         # replicationcontroller/prod-ml-predict-rc created
