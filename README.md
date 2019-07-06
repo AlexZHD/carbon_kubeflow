@@ -571,7 +571,11 @@ $kops validate cluster --state=$(terraform output state_store)
         3) out of the box best-practices for logging, tracing and base metrics
         4) support for deployment strategies such as running A/B test and canaries
         5) inferences graphs for microservice-based serving strategies such as multi-armed bandits or pre-processing
-        Because I had only 3 weeks for the project implementation, I had no time to deploy ML model using Seldon Core deployment, using Helm. This is project stretch goal and can be implemented to have better k8 cluster monitoring and tracing. But I did implemented Helm charts for load deployments.
+        
+        # Because I had only 3 weeks for the project implementation, I had no time to deploy ML model 
+        # using Seldon Core deployment, using Helm. This is project stretch goal and can be implemented 
+        # to have better k8 cluster monitoring and tracing. But I did implemented Helm charts for load 
+        # deployments.
 ## Helm Charts to define and deploy Carbon ML Model - predict service
     # Installing Helm
         $brew install kubernetes-helm
