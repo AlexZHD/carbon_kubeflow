@@ -10,7 +10,7 @@ Technologies used: Teraform, Docker, KOPS, Kubernetes, Jenkins, Kubectl, Helm
 
 ## Required Tools
 1. Terraform: https://learn.hashicorp.com/terraform/getting-started/install.html
-2. KOPS: 
+2. KOPS: https://github.com/kubernetes/kops
 3. AWS-IAM: https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html
 4. Kubectl: https://kubernetes.io/docs/tasks/tools/install-kubectl/
 5. Helm: https://github.com/helm/helm
