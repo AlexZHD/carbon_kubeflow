@@ -22,7 +22,7 @@ Technologies used: Teraform, Docker, KOPS, Kubernetes, Jenkins, Kubectl, Helm
 4. [Dockerfile to build the Carbon emission model with Flask and Sklearn](README.md#Dockerfile-to-build-the-Carbon-emission-model-with-Flask-and-Sklearn)
 5. [Launching the Containerised Flask ML Model Service on the minikube](README.md#Launching-the-Containerised-Flask-ML-Model-Service-on-the-minikube)
 6. [Defining entire applications is with YAML files that are posted to the Kubernetes API](README.md#Defining-entire-applications-is-with-YAML-files-that-are-posted-to-the-Kubernetes-API)
-7. [Why Helm Charts added to the project?](README.md#Why-Helm-Charts-added-to-the-project?)
+7. [Why Helm Charts added to the project](README.md#Why-Helm-Charts-added-to-the-project)
 8. [Helm Charts to define and deploy Carbon ML Model - predict service](README.md#Helm-Charts-to-define-and-deploy-Carbon-ML-Model---predict-service)
 9. [Launching the Containerised Flask ML Model Service on the AWS Kubernetes](README.md#Launching-the-Containerised-Flask-ML-Model-Service-on-the-AWS-Kubernetes)
 10. [Jenkins Pipeline to deploy load to K8 cluster with versioning](README.md#Jenkins-Pipeline-to-deploy-load-to-K8-cluster-with-versioning)
@@ -571,7 +571,7 @@ $kops validate cluster --state=$(terraform output state_store)
         # namespace "prod-ml-app" deleted
         # replicationcontroller "prod-ml-predict-rc" deleted
         # service "prod-ml-predict-lb" deleted                
-## Why Helm Charts added to the project?
+## Why Helm Charts added to the project
     # Helm - a framework for creating, executing and managing Kubernetes deployment templates.
     # Seldon-Core can also be deployed using Helm
     ########################################################
