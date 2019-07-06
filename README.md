@@ -17,6 +17,7 @@ Technologies used: Teraform, Docker, KOPS, Kubernetes, Jenkins, Kubectl, Helm
 
 ## Table of Content
 1. [Required AWS Access](README.md#required-aws-access)
+2. [Setup AWS EC2 Key Pairs](README.md#Setup-AWS-EC2-Key-Pairs)
 
 ## Required AWS Access
 An AWS account with an access key is needed with the following permissions:
