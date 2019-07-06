@@ -25,7 +25,7 @@ Technologies used: Teraform, Docker, KOPS, Kubernetes, Jenkins, Kubectl, Helm
 7. [Why Helm Charts added to the project?](README.md#Why-Helm-Charts-added-to-the-project?)
 8. [Helm Charts to define and deploy Carbon ML Model - predict service](README.md#Helm-Charts-to-define-and-deploy-Carbon-ML-Model---predict-service)
 9. [Launching the Containerised Flask ML Model Service on the AWS Kubernetes](README.md#Launching-the-Containerised-Flask-ML-Model-Service-on-the-AWS-Kubernetes)
-10. [CI / CD Jenkins Pipeline to deploy load to K8 cluster with versioning](README.md#CI-/-CD-Jenkins-Pipeline-to-deploy-load-to-K8-cluster-with-versioning)
+10. [CI/CD Jenkins Pipeline to deploy load to K8 cluster with versioning](README.md#CI/CD-Jenkins-Pipeline-to-deploy-load-to-K8-cluster-with-versioning)
 
 ## Required AWS Access
 An AWS account with an access key is needed with the following permissions:
@@ -811,7 +811,7 @@ $kops validate cluster --state=$(terraform output state_store)
     #        ]
     #    }
 
-## CI / CD Jenkins Pipeline to deploy load to K8 cluster with versioning
+## CI/CD Jenkins Pipeline to deploy load to K8 cluster with versioning
     To start Jenkins the service on Mac:
         sudo launchctl load /Library/LaunchDaemons/org.jenkins-ci.plist
     To stop Jenkins the service on Mac:
