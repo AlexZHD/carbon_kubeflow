@@ -881,8 +881,25 @@ $kops validate cluster --state=$(terraform output state_store)
         $kubectl get all --namespace prod-ml-app   
         $kubectl get all --namespace canary-ml-app     
     
+    # Jenkins can do anything you can do given that the tools are installed and accessible. So an easy 
+    # solution is to install docker and kubectl on Jenkins and provide him with the correct kube config so 
+    # he can access the cluster. So if your host can use kubectl you can have a look at the $HOME/.kube/
+    # config file.
+    # So in your job you can just use kubectl like you do from your host.
+
     # Configure kubectl as Jenkins build based on kube-config info
 
 <a href="url"><img src="https://github.com/AlexZHD/carbon_kubeflow/blob/master/README_IMG/JenkinsKubectl1.png" align="middle" height="300" width="560"></a>
+
+    # use Jenkins building variables to assign API version in the build step
+    export API_VERSION=${BUILD_NUMBER}
+
+    # use Docker Build and Publish Plugin to build a fresh version of docker image and tag it and push to docker registry
+
+    # if kubectl configured, shell step executed as 
+        # for canary
+            kubectl apply -f py-flask-ml-carbon-api/py-flask-ml-carbon-canary.yaml
+        # for production    
+            kubectl apply -f py-flask-ml-carbon-api/py-flask-ml-carbon.yaml
 
 
