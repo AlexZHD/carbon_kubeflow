@@ -18,6 +18,14 @@ Technologies used: Teraform, Docker, KOPS, Kubernetes, Jenkins, Kubectl, Helm
 ## Table of Content
 1. [Required AWS Access](README.md#required-aws-access)
 2. [Setup AWS EC2 Key Pairs](README.md#Setup-AWS-EC2-Key-Pairs)
+3. [Setup of AWS Infrastructure with Terraform and KOPS](README.md#Setup-of-AWS-Infrastructure-with-Terraform-and KOPS)
+4. [Dockerfile to build the Carbon emission model with Flask and Sklearn](README.md#Dockerfile-to-build-the-Carbon-emission-model-with-Flask-and-Sklearn)
+5. [Launching the Containerised Flask ML Model Service on the minikube](README.md#Launching-the-Containerised-Flask-ML-Model -Service-on-the-minikube)
+6. [Defining entire applications is with YAML files that are posted to the Kubernetes API](README.md#Defining-entire-applications-is -with-YAML-files-that-are-posted-to-the-Kubernetes-API)
+7. [Why Helm Charts added to the project?](README.md#Why-Helm-Charts-added-to-the-project?)
+8. [Helm Charts to define and deploy Carbon ML Model - predict service](README.md#Helm-Charts-to-define-and-deploy-Carbon-ML-Model-- -predict-service)
+9. [Launching the Containerised Flask ML Model Service on the AWS Kubernetes](README.md#Launching-the-Containerised-Flask-ML-Model -Service-on-the-AWS-Kubernetes)
+10. [CI / CD Jenkins Pipeline to deploy load to K8 cluster with versioning](README.md#CI-/-CD-Jenkins-Pipeline-to-deploy-load-to-K8 -cluster-with-versioning)
 
 ## Required AWS Access
 An AWS account with an access key is needed with the following permissions:
