@@ -798,3 +798,73 @@ $kops validate cluster --state=$(terraform output state_store)
     #            318.3333333333333
     #        ]
     #    }
+
+## CI / CD Jenkins Pipeline to deploy load to K8 cluster with versioning
+    To start Jenkins the service on Mac:
+        sudo launchctl load /Library/LaunchDaemons/org.jenkins-ci.plist
+    To stop Jenkins the service on Mac:
+        sudo launchctl unload /Library/LaunchDaemons/org.jenkins-ci.plist
+
+    Install Jenkins
+        $sudo mkdir -p /var/jenkins_home
+        $sudo chown -R 1000:1000 /var/jenkins_home/
+        $ docker run -p 8080:8080 -p 50000:50000 -v /var/jenkins_home:/var/jenkins_home --name jenkins -d jenkins/jenkins:lts
+        # Open browser and go to: http://IP:8080/ (change IP to your droplet IP)
+        $ cat /var/jenkins_home/secrets/initialAdminPassword
+    
+    # Run Jenkins in docker on Vagrant:
+    # Run docker Jenkins:
+        $docker run -p 8080:8080 -p 50000:50000 -v /var/jenkins_home:/var/jenkins_home -v /var/run/$docker.sock:/var/run/docker.sock --name jenkins -d jenkins-docker
+        /var/jenkins_home/workspace
+        # make sure that Jenkins container can access docker socket [on Linux file to communicate with docker # API]
+        # run bash as root on jenkins/jenkins image
+            docker exec -it -u root d4a7d28ceb6c bash
+            # install kubectl on jenkins/jenkins
+                # download
+                    $curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+                # Make the kubectl binary executable.
+                    $chmod +x ./kubectl
+                # Move the binary in to your PATH.
+                    $sudo mv ./kubectl /usr/local/bin/kubectl    
+            # or native as root
+                $apt-get update && apt-get install -y apt-transport-https
+                $curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add -
+                echo "deb https://apt.kubernetes.io/ kubernetes-xenial main" | tee -a /etc/apt/sources.list.d/kubernetes.list
+                $apt-get update
+                $apt-get install -y kubectl    
+    
+    # Use kops export command to get the kubecfg needed for running kubectl
+
+    $kops export kubecfg staging.zdevops.xyz 
+        # kops has set your kubectl context to staging.zdevops.xyz   
+            apiVersion: v1
+            clusters:
+            - cluster:
+                certificate-authority-data: REDACTED
+                server: https://api.staging.zdevops.xyz
+            name: staging.zdevops.xyz
+            contexts:
+            - context:
+                cluster: staging.zdevops.xyz
+                user: staging.zdevops.xyz
+            name: staging.zdevops.xyz
+            current-context: staging.zdevops.xyz
+            kind: Config
+            preferences: {}
+            users:
+            - name: staging.zdevops.xyz
+            user:
+                client-certificate-data: REDACTED
+                client-key-data: REDACTED
+                password: *************************7
+                username: admin
+            - name: staging.zdevops.xyz-basic-auth
+            user:
+                password: *************************7
+                username: admin
+
+        $cat ~/.kube/config file   
+        $kubectl config use-context staging.zdevops.xyz
+        $kubectl config get-contexts  
+        $kubectl get all --namespace prod-ml-app   
+        $kubectl get all --namespace canary-ml-app            
