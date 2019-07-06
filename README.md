@@ -462,3 +462,55 @@ $kops validate cluster --state=$(terraform output state_store)
                 $kubectl delete rc ...api
                 $kubectl delete service ...api-http
                 $minikube delete    
+
+## Defining entire applications is with YAML files that are posted to the Kubernetes API
+    # Directory .\py-flask-ml-carbon-api incudes YAMLs files for production and canary enviroments.
+    # Example to apply production YAML to k8s 
+    $kubectl apply -f py-flask-ml-carbon-api/py-flask-ml-carbon.yaml
+        # namespace/prod-ml-app created
+        # replicationcontroller/prod-ml-predict-rc created
+        # service/prod-ml-predict-lb created
+            # a replication controller, 
+            # a load-balancer service 
+            # and a namespace for all of these components
+    $kubectl get all --namespace prod-ml-app
+        # NAME                           READY   STATUS    RESTARTS   AGE
+        # pod/prod-ml-predict-rc-jhr2j   1/1     Running   0          43m
+        # pod/prod-ml-predict-rc-vnx28   1/1     Running   0          43m
+        # NAME                                       DESIRED   CURRENT   READY   AGE
+        # replicationcontroller/prod-ml-predict-rc   2         2         2       43m
+        # NAME                         TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)          AGE
+        # service/prod-ml-predict-lb   LoadBalancer   10.103.12.35   <pending>     5000:30437/TCP   43m
+    $minikube service list
+    #|-------------|----------------------|-----------------------------|
+    #|  NAMESPACE  |         NAME         |             URL             |
+    #|-------------|----------------------|-----------------------------|
+    #| default     | kubernetes           | No node port                |
+    #| kube-system | default-http-backend | http://192.168.99.106:30001 |
+    #| kube-system | kube-dns             | No node port                |
+    #| kube-system | kubernetes-dashboard | No node port                |
+    #| prod-ml-app | prod-ml-predict-lb   | http://192.168.99.106:30437 |
+    #|-------------|----------------------|-----------------------------|
+    #prod -> 
+        $curl http://192.168.99.106:31145/carbon/v1/predict --request POST --header "Content-Type: application/json" --data '{"prediction": [2077.0,0,23.0,11.0,0,0,0,0,0,0,0,0,0,0,63.0,28.0,0,0,0,4.5,7.0,0.93,0.366141732283465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'
+    #canary -> 
+        $curl http://192.168.99.106:31720/carbon/v1/predict --request POST --header "Content-Type: application/json" --data '{"prediction": [2077.0,0,23.0,11.0,0,0,0,0,0,0,0,0,0,0,63.0,28.0,0,0,0,4.5,7.0,0.93,0.366141732283465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'
+
+    # set our new namespace as the default context
+        kubectl config set-context $(kubectl config current-context) --namespace=prod-ml-app
+            kubectl config get-contexts
+            CURRENT   NAME                  CLUSTER               AUTHINFO              NAMESPACE
+    *       minikube              minikube              minikube                        prod-ml-app
+            staging.zdevops.xyz   staging.zdevops.xyz   staging.zdevops.xyz 
+            kubectl get all
+    # switch back to the default namespace    
+        kubectl config set-context $(kubectl config current-context) --namespace=default
+            kubectl config get-contexts
+            CURRENT   NAME                  CLUSTER               AUTHINFO              NAMESPACE
+    *       minikube              minikube              minikube                        default
+            staging.zdevops.xyz   staging.zdevops.xyz   staging.zdevops.xyz
+    # tear-down this application
+    $ kubectl delete -f py-flask-ml-carbon-api/py-flask-ml-carbon.yaml
+        # namespace "prod-ml-app" deleted
+        # replicationcontroller "prod-ml-predict-rc" deleted
+        # service "prod-ml-predict-lb" deleted                
