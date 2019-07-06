@@ -709,3 +709,92 @@ $kops validate cluster --state=$(terraform output state_store)
                         $curl http://192.168.99.107:30765/carbon/v1/predict --request POST --header "Content-Type: application/json" --data '{"prediction": [2077.0,0,23.0,11.0,0,0,0,0,0,0,0,0,0,0,63.0,28.0,0,0,0,4.5,7.0,0.93,0.366141732283465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'
                     #Canary
                         $curl http://192.168.99.107:32296/carbon/v3/predict --request POST --header "Content-Type: application/json" --data '{"prediction": [2077.0,0,23.0,11.0,0,0,0,0,0,0,0,0,0,0,63.0,28.0,0,0,0,4.5,7.0,0.93,0.366141732283465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'
+
+## Launching the Containerised Flask ML Model Service on the AWS Kubernetes
+    
+    export NAME=$(terraform output cluster_name)
+    echo $NAME
+    export KOPS_STATE_STORE=$(terraform output state_store)
+    echo $KOPS_STATE_STORE
+    export ZONES=us-west-2a,us-west-2b,us-west-2c
+    echo $ZONES
+
+    # validate cluster
+    $kops validate cluster --state=$(terraform output state_store)
+    # list of available contexts 
+    $kubectl config get-contexts
+            CURRENT   NAME                  CLUSTER               AUTHINFO              NAMESPACE
+            minikube              minikube              minikube              
+    *         staging.zdevops.xyz   staging.zdevops.xyz   staging.zdevops.xyz 
+
+    # Switching Between Kubectl Contexts
+        $kubectl config use-context staging.zdevops.xyz
+    
+    $kubectl config get-contexts
+    $kubectl apply -f food_facts/py-flask-ml-carbon-api/py-flask-ml-carbon.yaml
+        # namespace/prod-ml-app created
+        # replicationcontroller/prod-ml-predict-rc created
+        # service/prod-ml-predict-lb created
+    $kubectl get all --namespace prod-ml-app    
+        # NAME                           READY   STATUS    RESTARTS   AGE
+        # pod/prod-ml-predict-rc-jtrv4   1/1     Running   0          1m
+        # pod/prod-ml-predict-rc-zsxsw   1/1     Running   0          1m
+        # NAME                                       DESIRED   CURRENT   READY   AGE
+        # replicationcontroller/prod-ml-predict-rc   2         2         2       1m
+        #NAME                         TYPE           CLUSTER-IP     EXTERNAL-IP                               #                                PORT(S)          AGE
+        #service/prod-ml-predict-lb   LoadBalancer   100.69.64.98   #ab4984dde956b11e9884f06e4aef76e6-1030012142.us-west-2.elb.amazonaws.com   5000:31467/TCP   1m
+    $kubectl get services  
+        # NAME         TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)   AGE
+        # kubernetes   ClusterIP   100.64.0.1   <none>        443/TCP   2d  
+
+    $kubectl get nodes
+        # NAME                                          STATUS   ROLES    AGE   VERSION
+        # ip-10-20-101-115.us-west-2.compute.internal   Ready    node     2d    v1.11.10
+        # ip-10-20-101-135.us-west-2.compute.internal   Ready    master   2d    v1.11.10
+        # ip-10-20-102-184.us-west-2.compute.internal   Ready    master   2d    v1.11.10
+        # ip-10-20-103-130.us-west-2.compute.internal   Ready    master   2d    v1.11.10
+        # ip-10-20-103-203.us-west-2.compute.internal   Ready    node     2d    v1.11.10
+    $kubectl --namespace=prod-ml-app describe service service/prod-ml-predict-lb 
+    #http://docs.heptio.com/content/tutorials/aws-qs-services-elb.html
+
+    #https://medium.com/faun/learning-kubernetes-by-doing-part-3-services-ed5bf7e2bc8e
+    #NAME                         TYPE           CLUSTER-IP     EXTERNAL-IP                                   #                            PORT(S)          AGE
+    #service/prod-ml-predict-lb   LoadBalancer   100.69.64.98   #ab4984dde956b11e9884f06e4aef76e6-1030012142.us-west-2.elb.amazonaws.com   5000:31467/TCP   1m
+        # LoadBalancer : The LoadBalancer Service type creates a cloud provider’s external load balancer. 
+        # The NodePort and ClusterIP will also be created automatically when we create a LoadBalancer 
+        # Service. 
+        # External traffic to the load balancer will be routed to the NodePort which in turn will be 
+        # routed to internal ClusterIP.
+    $kubectl get service --namespace prod-ml-app
+        #NAME                 TYPE           CLUSTER-IP     EXTERNAL-IP                                       #                        PORT(S)          AGE
+        #prod-ml-predict-lb   LoadBalancer   100.69.64.98   
+        #ab4984dde956b11e9884f06e4aef76e6-1030012142.us-west-2.elb.amazonaws.com   5000:31467/TCP   35m
+    # Canary deployment of 
+    # Canary. A smaller-capacity enviroment in K8 cluster, that receives a percentage of user traffic. 
+    # Use this environment to sanity check new ML model deployment with live traffic before it's released 
+    # to the production environment.
+
+    # -----------------------------------
+    # PRODUCTION environment ML Version 1
+    # -----------------------------------
+    $kubectl get all --namespace prod-ml-app
+        # NAME                         TYPE           CLUSTER-IP      EXTERNAL-IP                             #                                PORT(S)          AGE
+        # service/prod-ml-predict-lb   LoadBalancer   100.69.20.201   #a06518b0096cd11e9a22102f6ab83b2c-370170182.us-west-2.elb.amazonaws.com   5000:31704/TCP   19h
+    $curl http://a06518b0096cd11e9a22102f6ab83b2c-370170182.us-west-2.elb.amazonaws.com:5000/carbon/v1/predict --request POST --header "Content-Type: application/json" --data '{"prediction": [2077.0,0,23.0,11.0,0,0,0,0,0,0,0,0,0,0,63.0,28.0,0,0,0,4.5,7.0,0.93,0.366141732283465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'    
+    #    {
+    #        "prediction,v1": [
+    #            318.3333333333333
+    #        ]
+    #   }
+    # -----------------------------------
+    # CANARY environment ML Version 3
+    # -----------------------------------
+    $kubectl get all --namespace canary-ml-app
+        #NAME                           TYPE           CLUSTER-IP      EXTERNAL-IP                            #                                   PORT(S)          AGE
+        #service/canary-ml-predict-lb   LoadBalancer   100.68.31.164   #ae38f496396c111e9a22102f6ab83b2c-1257448687.us-west-2.elb.amazonaws.com   5000:30207/TCP   20h
+    $curl http://ae38f496396c111e9a22102f6ab83b2c-1257448687.us-west-2.elb.amazonaws.com:5000/carbon/v3/predict --request POST --header "Content-Type: application/json" --data '{"prediction": [2077.0,0,23.0,11.0,0,0,0,0,0,0,0,0,0,0,63.0,28.0,0,0,0,4.5,7.0,0.93,0.366141732283465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'    
+    #    {
+    #        "prediction,v3": [
+    #            318.3333333333333
+    #        ]
+    #    }
