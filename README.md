@@ -880,6 +880,9 @@ $kops validate cluster --state=$(terraform output state_store)
         $kubectl config get-contexts  
         $kubectl get all --namespace prod-ml-app   
         $kubectl get all --namespace canary-ml-app     
-    # Configure kubectl as Jenkins build based on kube-config info
     
-    <a href="url"><img src="https://github.com/AlexZHD/carbon_kubeflow/blob/master/README_IMG/JenkinsKubectl1.png" align="middle" height="150" width="280"></a>           
+    # Configure kubectl as Jenkins build based on kube-config info
+
+<a href="url"><img src="https://github.com/AlexZHD/carbon_kubeflow/blob/master/README_IMG/JenkinsKubectl1.png" align="middle" height="150" width="280"></a>
+
+
