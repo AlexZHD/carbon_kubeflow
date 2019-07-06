@@ -466,6 +466,7 @@ $kops validate cluster --state=$(terraform output state_store)
 ## Defining entire applications is with YAML files that are posted to the Kubernetes API
     # Directory .\py-flask-ml-carbon-api incudes YAMLs files for production and canary enviroments.
     # Example to apply production YAML to k8s :
+    
         apiVersion: v1
         kind: Namespace
         metadata:
@@ -558,3 +559,149 @@ $kops validate cluster --state=$(terraform output state_store)
         # namespace "prod-ml-app" deleted
         # replicationcontroller "prod-ml-predict-rc" deleted
         # service "prod-ml-predict-lb" deleted                
+## Why Helm Charts added to the project?
+    # Helm - a framework for creating, executing and managing Kubernetes deployment templates.
+    # Seldon-Core can also be deployed using Helm
+    ########################################################
+    # Why Seldon Core deployment
+    # https://github.com/SeldonIO/seldon-core
+    ########################################################    
+        1) open source platform for deploying machine learning models on a Kubernetes cluster.
+        2) metrics and ensure proper governance and compliance for your running machine learning models
+        3) out of the box best-practices for logging, tracing and base metrics
+        4) support for deployment strategies such as running A/B test and canaries
+        5) inferences graphs for microservice-based serving strategies such as multi-armed bandits or pre-processing
+        Because I had only 3 weeks for the project implementation, I had no time to deploy ML model using Seldon Core deployment, using Helm. This is project stretch goal and can be implemented to have better k8 cluster monitoring and tracing. But I did implemented Helm charts for load deployments.
+## Helm Charts to define and deploy Carbon ML Model - predict service
+    # Installing Helm
+        $brew install kubernetes-helm
+    # Helm relies on a dedicated deployment server, referred to as the ‘Tiller’, 
+    # to be running within the same Kubernetes cluster 
+    # Before we deploy Tiller we need to create a cluster-wide super-user role to assign to it 
+    # (via a dedicated service account)
+        $kubectl --namespace kube-system create serviceaccount tiller
+            serviceaccount/tiller created
+        $kubectl create clusterrolebinding tiller --clusterrole cluster-admin --serviceaccount=kube-system:tiller    
+            clusterrolebinding.rbac.authorization.k8s.io/tiller created
+    # deploy the Helm Tiller to your Kubernetes cluster
+        $helm init --service-account tiller
+            # Creating /Users/bird5555/.helm 
+            # Creating /Users/bird5555/.helm/repository 
+            # Creating /Users/bird5555/.helm/repository/cache 
+            # Creating /Users/bird5555/.helm/repository/local 
+            # Creating /Users/bird5555/.helm/plugins 
+            # Creating /Users/bird5555/.helm/starters 
+            # Creating /Users/bird5555/.helm/cache/archive 
+            # Creating /Users/bird5555/.helm/repository/repositories.yaml 
+            
+            Adding stable repo with URL: https://kubernetes-charts.storage.googleapis.com 
+            Adding local repo with URL: http://127.0.0.1:8879/charts 
+            
+            $HELM_HOME has been configured at /Users/bird5555/.helm.
+            # Tiller (the Helm server-side component) has been installed into your Kubernetes Cluster.
+            # Please note: by default, Tiller is deployed with an insecure 'allow unauthenticated users' # policy.
+            # To prevent this, run `helm init` with the --tiller-tls-verify flag.
+            # For more information on securing your installation see: https://docs.helm.sh/using_helm/securing-your-helm-installation
+    # To initiate a new deployment - referred to as a ‘chart’ in Helm terminology 
+        $helm create helm-ml-carbon-predict-app 
+            # Creating helm-ml-carbon-predict-app  
+            # helm-ml-carbon-predict-app/
+            #    | -- charts/
+            #    | -- templates/
+            #    | Chart.yaml
+            #    | values.yaml        
+                # charts directory contains other charts that our new chart will depend on 
+                # the templates directory contains our Helm templates
+                # Chart.yaml contains core information for our chart (e.g. name and version information)
+                # values.yaml contains default values to render our templates with, in the case that no 
+                # values are passed from the command line
+            # To test and examine the rendered template, without having to attempt a deployment
+                $minikube start --memory 4096   
+                $kubectl config use-context minikube
+                $kubectl cluster-info
+                $kubectl config use-context minikube
+                $minikube service list
+                $kubectl get all --namespace prod-ml-app
+                $kubectl get all --namespace canary-ml-app
+                $kubectl delete -f py-flask-ml-carbon-api/py-flask-ml-carbon.yaml
+                $kubectl delete -f py-flask-ml-carbon-api/py-flask-ml-carbon-canary.yaml
+                1) create charts
+                    $helm create helm-ml-carbon-predict-app
+                    $helm create helm-ml-carbon-canary-predict-app
+                2) add pod.yaml and service.yaml to templates    
+                3) test and examine the rendered template, without having to attempt a deployment   
+                    $helm install helm-ml-carbon-predict-app --debug --dry-run
+                    # validate extra
+                        $helm lint helm-ml-carbon-predict-app
+                    $helm install helm-ml-carbon-canary-predict-app --debug --dry-run
+                4) execute the deployment and generate a release from the chart
+                    $helm install helm-ml-carbon-predict-app
+                    $helm install helm-ml-carbon-canary-predict-app
+                        ------------------
+                        # ignorant-blackbird  - production
+                        # smelly-hyena        - canary
+                        ------------------
+                        # name that Helm has ascribed to it -> XXXXXXXX-yak
+                            # NAME:   ignorant-blackbird
+                            # LAST DEPLOYED: Tue Jun 25 14:11:57 2019
+                            # NAMESPACE: default
+                            # STATUS: DEPLOYED
+                            # RESOURCES:
+                            # ==> v1/Namespace
+                            # NAME         STATUS  AGE
+                            # prod-ml-app  Active  0s
+                            # ==> v1/Pod(related)
+                            # NAME                      READY  STATUS             RESTARTS  AGE
+                            # prod-ml-predict-rc-wnfhv  0/1    ContainerCreating  0         0s
+                            # prod-ml-predict-rc-wvzml  0/1    ContainerCreating  0         0s
+                            # ==> v1/ReplicationController
+                            # NAME                DESIRED  CURRENT  READY  AGE
+                            # prod-ml-predict-rc  2        2        0      0s
+                            # ==> v1/Service
+                            # NAME                TYPE          CLUSTER-IP    EXTERNAL-IP  PORT(S)         AGE
+                            # prod-ml-predict-lb  LoadBalancer  10.107.63.74  <pending>    5000:30765/TCP  0s                                
+                5) list all available Helm releases and their names
+                    $helm list
+                6) status of all their constituent components (e.g. pods, replication controllers, service)
+                    $helm status ignorant-blackbird
+                    $helm status smelly-hyena
+                        # LAST DEPLOYED: Tue Jun 25 14:11:57 2019
+                        # NAMESPACE: default
+                        # STATUS: DEPLOYED
+                        # RESOURCES:
+                        # ==> v1/Namespace
+                        # NAME         STATUS  AGE
+                        # prod-ml-app  Active  2m46s
+                        # ==> v1/Pod(related)
+                        # NAME                      READY  STATUS   RESTARTS  AGE
+                        # prod-ml-predict-rc-wnfhv  1/1    Running  0         2m46s
+                        # prod-ml-predict-rc-wvzml  1/1    Running  0         2m46s
+                        # ==> v1/ReplicationController
+                        # NAME                DESIRED  CURRENT  READY  AGE
+                        # prod-ml-predict-rc  2        2        2      2m46s
+                        # ==> v1/Service
+                        # NAME                TYPE          CLUSTER-IP    EXTERNAL-IP  PORT(S)         AGE
+                        # prod-ml-predict-lb  LoadBalancer  10.107.63.74  <pending>    5000:30765/TCP  2m46s
+                7) versioning and scaling
+                    exhaling-whippet
+                    mottled-marsupial   
+                        $helm upgrade --set scale=4, tag="2" exhaling-whippet ./helm-ml-carbon-predict-app     
+                8) $delete charts deployment
+                    $helm delete ignorant-blackbird 
+                    $helm delete smelly-hyena 
+                9) $minikube service list  
+                    #|-------------|----------------------|-----------------------------|
+                    #|  NAMESPACE  |         NAME         |             URL             |
+                    #|-------------|----------------------|-----------------------------|
+                    #| default     | kubernetes           | No node port                |
+                    #| kube-system | default-http-backend | http://192.168.99.107:30001 |
+                    #| kube-system | kube-dns             | No node port                |
+                    #| kube-system | kubernetes-dashboard | No node port                |
+                    #| kube-system | tiller-deploy        | No node port                |
+                    #| prod-ml-app | prod-ml-predict-lb   | http://192.168.99.107:30765 |
+                    #| canary-ml-ap| canary-ml-predict-lb | http://192.168.99.107:32296 |
+                    #|-------------|----------------------|-----------------------------| 
+                    #Production  
+                        $curl http://192.168.99.107:30765/carbon/v1/predict --request POST --header "Content-Type: application/json" --data '{"prediction": [2077.0,0,23.0,11.0,0,0,0,0,0,0,0,0,0,0,63.0,28.0,0,0,0,4.5,7.0,0.93,0.366141732283465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'
+                    #Canary
+                        $curl http://192.168.99.107:32296/carbon/v3/predict --request POST --header "Content-Type: application/json" --data '{"prediction": [2077.0,0,23.0,11.0,0,0,0,0,0,0,0,0,0,0,63.0,28.0,0,0,0,4.5,7.0,0.93,0.366141732283465,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}'
